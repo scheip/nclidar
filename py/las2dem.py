@@ -15,13 +15,15 @@ import datetime
 import os
 
 """ debug
-lasFilesIn = "D:\ql2DEM\samples\stone\\20633_1.las"
+lasFilesIn = "G:\lidar_data\QL2\stone\\22030_1.las"
 lasFiles = lasFilesIn.split(';')
 returnClass = "2 —Bare earth measurements"
-sr = arcpy.SpatialReference(26917)
+sr = ''
 targetElevUnits = 'meter'
 resolution = 0.5
 hillshade = True
+az = float('315')
+alt = float('45')
 slope = True
 aspect = False
 """
@@ -66,21 +68,31 @@ arcpy.env.overwriteOutput = True
 # Set user variables
 lasFilesIn = sys.argv[1]
 lasFiles = lasFilesIn.split(';')
-returnClass = sys.argv[2]
-if sys.argv[3] == '#' or sys.argv[3] == '':
+if sys.argv[2] == '#' or sys.argv[2] == '':
+    outDir = os.path.dirname(lasFiles[0])
+else:
+    outDir = sys.argv[2]
+returnClass = sys.argv[3]
+if sys.argv[4] == '#' or sys.argv[4] == '':
     sr = arcpy.SpatialReference(26917)  # UTM 17N
 else:
-    srText = sys.argv[3]
+    srText = sys.argv[4]
     sr = arcpy.SpatialReference()  # an empty spatial reference object
     sr.loadFromString(srText) # get arcpy spatial reference object
 
-targetElevUnits = sys.argv[4]
-resolution = sys.argv[5]
-hillshade = boolify(sys.argv[6])
-az = float(sys.argv[7])
-alt = float(sys.argv[8])
-slope = boolify(sys.argv[9])
-#aspect = boolify(sys.argv[10])
+targetElevUnits = sys.argv[5]
+resolution = sys.argv[6]
+hillshade = boolify(sys.argv[7])
+az = float(sys.argv[8])
+alt = float(sys.argv[9])
+slope = boolify(sys.argv[10])
+#aspect = boolify(sys.argv[11])
+
+# Check for space in output directory
+if ' ' in outDir:
+    printArc('ERROR --- Remove space from output directory --- ERROR')
+    sys.exit(0)
+
 arcpy.env.outputCoordinateSystem = sr
 linUnit = str(sr.linearUnitName)
 
@@ -89,9 +101,8 @@ mxd = arcpy.mapping.MapDocument('CURRENT')
 df = arcpy.mapping.ListDataFrames(mxd)[0]
 
 # Set up workspace
-outDir = os.path.dirname(lasFiles[0])
 arcpy.env.workspace = outDir
-site = os.path.basename(outDir)
+site = os.path.basename(outDir)[0:11]
 
 printArc('--- Beginning ' + site.upper() + ' ---')
 
@@ -116,7 +127,7 @@ else:
 # Create elevation DEM
 printArc('...creating elevation DEM...')
 start = datetime.datetime.now()
-elevDEM = 'elev' + site
+elevDEM = 'el' + site
 interp = "BINNING AVERAGE NATURAL_NEIGHBOR"
 arcpy.LasDatasetToRaster_conversion(lasDFilter, elevDEM, 'ELEVATION',\
                                     interp, 'FLOAT', 'CELLSIZE', resolution, 1)
@@ -130,7 +141,7 @@ if hillshade:
     printArc('...creating hillshade raster...')
     start = datetime.datetime.now()
 
-    hillRas = 'hill' + site
+    hillRas = 'hi' + site
     hillRasObject = arcpy.sa.Hillshade(elevDEM, az, alt, 'NO_SHADOWS', 1)
     hillRasObject.save(hillRas)
     del hillRasObject
@@ -143,7 +154,7 @@ if hillshade:
 if slope:
     printArc('...creating slope raster...')
     start = datetime.datetime.now()
-    slopeRas = 'slope' + site
+    slopeRas = 'sl' + site
     slopeRasObject = arcpy.sa.Slope(elevDEM, "DEGREE", 1)
     slopeRasObject.save(slopeRas)
     del slopeRasObject
