@@ -3,7 +3,7 @@
 NC Lidar Tools
 Author: Corey Scheip, North Carolina State University. For questions, email cmscheip@ncsu.edu
 
-Version: 2.0 /// Date: 2019-02-11
+Version: 2.1 /// Date: 2019-02-26
 
 Description:
 NC Lidar Tools is a Python-driven ArcGIS toolbox to aid in processing the new, public submeter NC QL2 Lidar Data
