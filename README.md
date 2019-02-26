@@ -19,7 +19,7 @@ these data as well. Try it out on a single or series of LAS files and let me kno
 
 *Updates to v2.1:
 Fixed two known bugs - 1) space in output directory error and 2) character length limit. Script now exits if space is in output directory and truncates site name to fit within ArcGIS character limits. 
-Added Output directory capability. By default, tool will place files in folder of LAS data, but allows user to specify alternate output location.
+Added Output directory capability. By default, tool will place files in folder of LAS data, but allows user to specify alternate output location.*
 
 Tools:
 ...las2dem
