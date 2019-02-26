@@ -17,7 +17,7 @@ data into a user-specified resolution DEM and calculates hillshade and slope ras
 This tool has not been fully tested on *non-NC* LAS files but there is no inherent reason this shouldn't work for 
 these data as well. Try it out on a single or series of LAS files and let me know what you find!
 
-*Updates to v2.1:
+*Updates to v2.1 (2019-02-26):
 Fixed two known bugs - 1) space in output directory error and 2) character length limit. Script now exits if space is in output directory and truncates site name to fit within ArcGIS character limits. 
 Added Output directory capability. By default, tool will place files in folder of LAS data, but allows user to specify alternate output location.*
 
