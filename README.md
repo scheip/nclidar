@@ -1,7 +1,7 @@
 # nclidartools
 
 NC Lidar Tools
-Author: Corey Scheip, North Carolina State University. For questions, email cmscheip@ncsu.edu
+/Author: Corey Scheip, North Carolina State University. For questions, email cmscheip@ncsu.edu
 
 Version: 2.1 /// Date: 2019-02-26
 
