@@ -7,7 +7,7 @@ Version: 2.1 /// Date: 2019-02-26
 Description:
 NC Lidar Tools is a Python-driven ArcGIS toolbox to aid in processing the new, public submeter NC QL2 Lidar Data
 collected in 2014-2017. Data is available here: https://sdd.nc.gov/sdd/DataDownload.aspx The two main options for 
-data download are QL2 Data (2 points/m2) or preprocessed Elevation DEMs (min resolution 3m). The QL2 data is
+data download are QL2 Data (2 points/m2) or preprocessed Elevation DEMs (min resolution 1m). The QL2 data is
 distributed as an LAS file of the selected area. This tool allows quick conversion of the full resolution, QL2
 data into a user-specified resolution DEM and calculates hillshade and slope rasters on the dataset. 
 
