@@ -72,21 +72,22 @@ if sys.argv[2] == '#' or sys.argv[2] == '':
     outDir = os.path.dirname(lasFiles[0])
 else:
     outDir = sys.argv[2]
-returnClass = sys.argv[3]
-if sys.argv[4] == '#' or sys.argv[4] == '':
+returnClass1 = sys.argv[3]
+returnClass2 = sys.argv[4]
+if sys.argv[5] == '#' or sys.argv[5] == '':
     sr = arcpy.SpatialReference(26917)  # UTM 17N
 else:
-    srText = sys.argv[4]
+    srText = sys.argv[5]
     sr = arcpy.SpatialReference()  # an empty spatial reference object
     sr.loadFromString(srText) # get arcpy spatial reference object
 
-targetElevUnits = sys.argv[5]
-resolution = sys.argv[6]
-hillshade = boolify(sys.argv[7])
-az = float(sys.argv[8])
-alt = float(sys.argv[9])
-slope = boolify(sys.argv[10])
-#aspect = boolify(sys.argv[11])
+targetElevUnits = sys.argv[6]
+resolution = sys.argv[7]
+hillshade = boolify(sys.argv[8])
+az = float(sys.argv[9])
+alt = float(sys.argv[10])
+slope = boolify(sys.argv[11])
+#aspect = boolify(sys.argv[12])
 
 # Check for space in output directory
 if ' ' in outDir:

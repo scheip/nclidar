@@ -57,9 +57,8 @@ def boolify(param):
 # Check for spatial analyst, if not available, abort!
 try:
     arcpy.CheckOutExtension('Spatial')
-    arcpy.CheckOutExtension('3D')
 except:
-    printArc('ABORTING SCRIPT. You need 3D Analyst and Spatial Analyst to run this tool')
+    printArc('ABORTING SCRIPT. You need Spatial Analyst to run this tool')
     sys.exit(0)
 
 # Set environment vars
@@ -76,20 +75,21 @@ if sys.argv[4] == '#' or sys.argv[4] == '':
     site = os.path.basename(outDir)[0:11]
 else:
     site = sys.argv[4][0:11]
-returnClass = sys.argv[5]
-if sys.argv[6] == '#' or sys.argv[6] == '':
+returnClass1 = sys.argv[5]
+returnClass2 = sys.argv[6]
+if sys.argv[7] == '#' or sys.argv[7] == '':
     sr = arcpy.SpatialReference(26917)  # UTM 17N
 else:
-    srText = sys.argv[6]
+    srText = sys.argv[7]
     sr = arcpy.SpatialReference()  # an empty spatial reference object
     sr.loadFromString(srText) # get arcpy spatial reference object
-targetElevUnits = sys.argv[7]
-resolution = sys.argv[8]
-hillshade = boolify(sys.argv[9])
-az = float(sys.argv[10])
-alt = float(sys.argv[11])
-slope = boolify(sys.argv[12])
-#aspect = boolify(sys.argv[13])
+targetElevUnits = sys.argv[8]
+resolution = sys.argv[9]
+hillshade = boolify(sys.argv[10])
+az = float(sys.argv[11])
+alt = float(sys.argv[12])
+slope = boolify(sys.argv[13])
+#aspect = boolify(sys.argv[14])
 
 # Find las files in directory
 idList = []
@@ -121,22 +121,32 @@ arcpy.env.workspace = outDir
 
 printArc('--- Beginning ' + site.upper() + ' ---')
 
+# Determine surface constraint polygon
+selecPolys = os.path.join(outDir, 'tiles.shp')
+arcpy.Merge_management(tileScheme, selecPolys)
+surfConstr = '{0} <None> Hard_Clip'.format(selecPolys)
+
 # Create *lasd
 printArc('...creating LAS dataset...')
 lasD = site + '.lasd'
-# The below filters for ground. Should add to the gui for user selection
-arcpy.CreateLasDataset_management(lasFiles, lasD, '#', '#',
-                                  '#', '#', 'RELATIVE_PATHS', 'FILES_MISSING_PROJECTION')
+# Create lasD for all returns
+arcpy.CreateLasDataset_management(lasFiles, lasD, '#', surfConstr,
+                                  '#', 'NO_COMPUTE_STATS', 'RELATIVE_PATHS')
 
 # Filter *lasd for specified returns
 printArc('...filtering LAS dataset...')
 lasDFilter = site + '_filt.lasd'
 
-if returnClass == 'All Returns':
+if returnClass1 == 'All Returns':
     arcpy.MakeLasDatasetLayer_management(lasD, lasDFilter)
 else:
-    returnClassVal = int(returnClass[0])
-    arcpy.MakeLasDatasetLayer_management(lasD, lasDFilter, returnClassVal)
+    returnClassVal1 = int(returnClass1[0])
+    if returnClass2:
+        returnClassVal2 = int(returnClass2[0])
+        returnClassVals = [returnClassVal1, returnClassVal2]
+    else:
+        returnClassVals = returnClass1
+    arcpy.MakeLasDatasetLayer_management(lasD, lasDFilter, returnClassVals)
 
 
 # Create elevation DEM
@@ -146,6 +156,8 @@ elevDEM = 'el' + site
 interp = "BINNING AVERAGE NATURAL_NEIGHBOR"
 arcpy.LasDatasetToRaster_conversion(lasDFilter, elevDEM, 'ELEVATION',\
                                     interp, 'FLOAT', 'CELLSIZE', resolution, 1)
+
+# Adjust Z-units
 
 elevDEMlyr = arcpy.mapping.Layer(elevDEM)
 checkAddLyr(elevDEMlyr)
@@ -178,6 +190,8 @@ if slope:
     checkAddLyr(slopeLyr)
     printArc('elapsed time for Slope: %s\n\n' % (datetime.datetime.now() - start))
 
+# File management
+arcpy.Delete_management(selecPolys)
 
 printArc('--- Finished ' + site.upper() + ' ---')
 printArc('')
