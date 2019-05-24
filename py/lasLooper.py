@@ -93,16 +93,16 @@ slope = boolify(sys.argv[13])
 
 # Find las files in directory
 idList = []
-with arcpy.da.SearchCursor(tileScheme, 'LiDARTiles') as sc:
+with arcpy.da.SearchCursor(tileScheme, 'Tile_Name') as sc:
     for row in sc:
         idList.append(row[0])
 
 files = os.listdir(lasFileDir)
-lasFiles=[]
+lasFiles = []
 for fil in files:
     for id in idList:
         if fil.endswith('las') and id in fil:
-            lasFiles.append(os.path.join(lasFileDir ,fil))
+            lasFiles.append(os.path.join(lasFileDir, fil))
 
 # Check for space in output directory
 if ' ' in outDir:
@@ -124,7 +124,9 @@ printArc('--- Beginning ' + site.upper() + ' ---')
 # Determine surface constraint polygon
 selecPolys = os.path.join(outDir, 'tiles.shp')
 arcpy.Merge_management(tileScheme, selecPolys)
-surfConstr = '{0} <None> Hard_Clip'.format(selecPolys)
+mergePolys = os.path.join(outDir, 'tiles_merge.shp')
+arcpy.Merge_management(selecPolys, mergePolys)
+surfConstr = '{0} <None> Hard_Clip'.format(mergePolys)
 
 # Create *lasd
 printArc('...creating LAS dataset...')
@@ -141,11 +143,12 @@ if returnClass1 == 'All Returns':
     arcpy.MakeLasDatasetLayer_management(lasD, lasDFilter)
 else:
     returnClassVal1 = int(returnClass1[0])
-    if returnClass2:
+    try:
         returnClassVal2 = int(returnClass2[0])
         returnClassVals = [returnClassVal1, returnClassVal2]
-    else:
-        returnClassVals = returnClass1
+    except:
+        returnClassVals = returnClassVal1
+
     arcpy.MakeLasDatasetLayer_management(lasD, lasDFilter, returnClassVals)
 
 
