@@ -14,7 +14,7 @@ This tool has not been fully tested on *non-NC* LAS files but there is no inhere
 these data as well. Try it out on a single or series of LAS files and let me know what you find!
 
 *Updates to v2.2 (2019-05-31):
-Added tool LAS Picker. LAS Picker allows the user to select tiles from the Tile Scheme that ships with a full suite of LAS data from NC Department of Public Safety data transfer. LAS Picker identifies the selected tiles and processes those into a single DEM and other specified raster derivatives (e.g., hillshade, slope). As of release of this tool, there is no sample data associated with it. Email cmscheip@ncsu.edu for assistance.
+Added tool LAS Picker. LAS Picker allows the user to select tiles from the Tile Scheme that ships with a full suite of LAS data from NC Department of Public Safety data transfer. LAS Picker identifies the selected tiles and processes those into a single DEM and other specified raster derivatives (e.g., hillshade, slope). As of release of this tool, there is no sample data associated with it. Email cmscheip@ncsu.edu for assistance.*
 
 *Updates to v2.1 (2019-02-26):
 Fixed two known bugs - 1) space in output directory error and 2) character length limit. Script now exits if space is in output directory and truncates site name to fit within ArcGIS character limits. 
