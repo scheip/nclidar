@@ -72,9 +72,9 @@ if sys.argv[3] == '#' or sys.argv[3] == '':
 else:
     outDir = sys.argv[3]
 if sys.argv[4] == '#' or sys.argv[4] == '':
-    site = os.path.basename(outDir)[0:11]
+    site = os.path.basename(outDir)[0:8]
 else:
-    site = sys.argv[4][0:11]
+    site = sys.argv[4][0:8]
 returnClass1 = sys.argv[5]
 returnClass2 = sys.argv[6]
 if sys.argv[7] == '#' or sys.argv[7] == '':
@@ -89,7 +89,8 @@ hillshade = boolify(sys.argv[10])
 az = float(sys.argv[11])
 alt = float(sys.argv[12])
 slope = boolify(sys.argv[13])
-#aspect = boolify(sys.argv[14])
+curv = boolify(sys.argv[14])
+#aspect = boolify(sys.argv[15])
 
 # Find las files in directory
 idList = []
@@ -155,10 +156,12 @@ else:
 # Create elevation DEM
 printArc('...creating elevation DEM...')
 start = datetime.datetime.now()
-elevDEM = 'el' + site
+elevDEM = 'el_' + site
 interp = "BINNING AVERAGE NATURAL_NEIGHBOR"
 arcpy.LasDatasetToRaster_conversion(lasDFilter, elevDEM, 'ELEVATION',\
                                     interp, 'FLOAT', 'CELLSIZE', resolution, 1)
+
+arcpy.BuildPyramids_management(in_raster_dataset=elevDEM)
 
 # Adjust Z-units
 
@@ -171,10 +174,12 @@ if hillshade:
     printArc('...creating hillshade raster...')
     start = datetime.datetime.now()
 
-    hillRas = 'hi' + site
+    hillRas = 'hs_' + site
     hillRasObject = arcpy.sa.Hillshade(elevDEM, az, alt, 'NO_SHADOWS', 1)
     hillRasObject.save(hillRas)
     del hillRasObject
+
+    arcpy.BuildPyramids_management(in_raster_dataset=hillRas)
 
     hillLyr = arcpy.mapping.Layer(hillRas)
     checkAddLyr(hillLyr)
@@ -184,17 +189,50 @@ if hillshade:
 if slope:
     printArc('...creating slope raster...')
     start = datetime.datetime.now()
-    slopeRas = 'sl' + site
+    slopeRas = 'slp_' + site
     slopeRasObject = arcpy.sa.Slope(elevDEM, "DEGREE", 1)
     slopeRasObject.save(slopeRas)
     del slopeRasObject
+
+    arcpy.BuildPyramids_management(in_raster_dataset=slopeRas)
 
     slopeLyr = arcpy.mapping.Layer(slopeRas)
     checkAddLyr(slopeLyr)
     printArc('elapsed time for Slope: %s\n\n' % (datetime.datetime.now() - start))
 
+# Create curvature rasters
+if curv:
+    printArc('...creating curvature rasters...')
+    start = datetime.datetime.now()
+    curveDir = os.path.join(outDir, 'curvature')
+    checkAddDir(curveDir)
+    arcpy.env.workspace = curveDir
+    curveRas = 'cv_' + site
+    profCurveRas = 'pfcv_' + site
+    planCurveRas = 'pncv_' + site
+
+
+    curveRasObject = arcpy.sa.Curvature(elevDEM, 1, profCurveRas, planCurveRas)
+    curveRasObject.save(curveRas)
+    del curveRasObject
+
+    arcpy.BuildPyramids_management(in_raster_dataset=curveRas)
+    arcpy.BuildPyramids_management(in_raster_dataset=profCurveRas)
+    arcpy.BuildPyramids_management(in_raster_dataset=planCurveRas)
+
+    curveLyr = arcpy.mapping.Layer(curveRas)
+    checkAddLyr(curveLyr)
+    profCurveLyr = arcpy.mapping.Layer(profCurveRas)
+    checkAddLyr(profCurveLyr)
+    planCurveLyr = arcpy.mapping.Layer(planCurveRas)
+    checkAddLyr(planCurveLyr)
+    printArc('elapsed time for Curvature: %s\n\n' % (datetime.datetime.now() - start))
+
 # File management
+printArc('...cleaning up temporary files...')
 arcpy.Delete_management(selecPolys)
+arcpy.Delete_management(mergePolys)
+
 
 printArc('--- Finished ' + site.upper() + ' ---')
 printArc('')
