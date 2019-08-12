@@ -63,6 +63,8 @@ except:
 
 # Set environment vars
 arcpy.env.overwriteOutput = True
+arcpy.env.compression = "LZW"
+arcpy.env.pyramid = "PYRAMIDS -1 BILINEAR LZ77 NO_SKIP"
 
 # Set user variables
 tileScheme = sys.argv[1]
@@ -123,10 +125,13 @@ arcpy.env.workspace = outDir
 printArc('--- Beginning ' + site.upper() + ' ---')
 
 # Determine surface constraint polygon
+# Copy tile scheme over
 selecPolys = os.path.join(outDir, 'tiles.shp')
 arcpy.Merge_management(tileScheme, selecPolys)
+
+# Dissolve to one continuous polygon
 mergePolys = os.path.join(outDir, 'tiles_merge.shp')
-arcpy.Merge_management(selecPolys, mergePolys)
+arcpy.Dissolve_management(selecPolys, mergePolys, "#", "#", "SINGLE_PART", "#")
 surfConstr = '{0} <None> Hard_Clip'.format(mergePolys)
 
 # Create *lasd
@@ -156,15 +161,14 @@ else:
 # Create elevation DEM
 printArc('...creating elevation DEM...')
 start = datetime.datetime.now()
-elevDEM = 'el_' + site
+elevDEM = 'el_' + site + '.tif'
 interp = "BINNING AVERAGE NATURAL_NEIGHBOR"
 arcpy.LasDatasetToRaster_conversion(lasDFilter, elevDEM, 'ELEVATION',\
                                     interp, 'FLOAT', 'CELLSIZE', resolution, 1)
 
-arcpy.BuildPyramids_management(in_raster_dataset=elevDEM)
+#arcpy.BuildPyramids_management(in_raster_dataset=elevDEM)
 
-# Adjust Z-units
-
+# Add to map document
 elevDEMlyr = arcpy.mapping.Layer(elevDEM)
 checkAddLyr(elevDEMlyr)
 printArc('elapsed time for DEM: %s\n\n' % (datetime.datetime.now() - start))
@@ -174,12 +178,12 @@ if hillshade:
     printArc('...creating hillshade raster...')
     start = datetime.datetime.now()
 
-    hillRas = 'hs_' + site
+    hillRas = 'hs_' + site + '.tif'
     hillRasObject = arcpy.sa.Hillshade(elevDEM, az, alt, 'NO_SHADOWS', 1)
     hillRasObject.save(hillRas)
     del hillRasObject
 
-    arcpy.BuildPyramids_management(in_raster_dataset=hillRas)
+    #arcpy.BuildPyramids_management(in_raster_dataset=hillRas)
 
     hillLyr = arcpy.mapping.Layer(hillRas)
     checkAddLyr(hillLyr)
@@ -189,12 +193,12 @@ if hillshade:
 if slope:
     printArc('...creating slope raster...')
     start = datetime.datetime.now()
-    slopeRas = 'slp_' + site
+    slopeRas = 'slp_' + site + '.tif'
     slopeRasObject = arcpy.sa.Slope(elevDEM, "DEGREE", 1)
     slopeRasObject.save(slopeRas)
     del slopeRasObject
 
-    arcpy.BuildPyramids_management(in_raster_dataset=slopeRas)
+    #arcpy.BuildPyramids_management(in_raster_dataset=slopeRas)
 
     slopeLyr = arcpy.mapping.Layer(slopeRas)
     checkAddLyr(slopeLyr)
@@ -216,9 +220,9 @@ if curv:
     curveRasObject.save(curveRas)
     del curveRasObject
 
-    arcpy.BuildPyramids_management(in_raster_dataset=curveRas)
-    arcpy.BuildPyramids_management(in_raster_dataset=profCurveRas)
-    arcpy.BuildPyramids_management(in_raster_dataset=planCurveRas)
+    #arcpy.BuildPyramids_management(in_raster_dataset=curveRas)
+    #arcpy.BuildPyramids_management(in_raster_dataset=profCurveRas)
+    #arcpy.BuildPyramids_management(in_raster_dataset=planCurveRas)
 
     curveLyr = arcpy.mapping.Layer(curveRas)
     checkAddLyr(curveLyr)
@@ -228,11 +232,15 @@ if curv:
     checkAddLyr(planCurveLyr)
     printArc('elapsed time for Curvature: %s\n\n' % (datetime.datetime.now() - start))
 
+# Build pyramids
+printArc('...building pyramids and statistics...')
+arcpy.BuildPyramidsandStatistics_management(outDir, "NONE", "BUILD_PYRAMIDS", "CALCULATE_STATISTICS",
+                                            resample_technique="BILINEAR", compression_type="LZ77", skip_existing="SKIP_EXISTING")
+
 # File management
 printArc('...cleaning up temporary files...')
 arcpy.Delete_management(selecPolys)
 arcpy.Delete_management(mergePolys)
-
 
 printArc('--- Finished ' + site.upper() + ' ---')
 printArc('')
