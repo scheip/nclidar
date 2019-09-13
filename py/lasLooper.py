@@ -74,9 +74,9 @@ if sys.argv[3] == '#' or sys.argv[3] == '':
 else:
     outDir = sys.argv[3]
 if sys.argv[4] == '#' or sys.argv[4] == '':
-    site = os.path.basename(outDir)[0:8]
+    site = os.path.basename(outDir)
 else:
-    site = sys.argv[4][0:8]
+    site = sys.argv[4]
 returnClass1 = sys.argv[5]
 returnClass2 = sys.argv[6]
 if sys.argv[7] == '#' or sys.argv[7] == '':
@@ -161,7 +161,7 @@ else:
 # Create elevation DEM
 printArc('...creating elevation DEM...')
 start = datetime.datetime.now()
-elevDEM = 'el_' + site + '.tif'
+elevDEM = site + '_el.tif'
 interp = "BINNING AVERAGE NATURAL_NEIGHBOR"
 arcpy.LasDatasetToRaster_conversion(lasDFilter, elevDEM, 'ELEVATION',\
                                     interp, 'FLOAT', 'CELLSIZE', resolution, 1)
@@ -178,7 +178,7 @@ if hillshade:
     printArc('...creating hillshade raster...')
     start = datetime.datetime.now()
 
-    hillRas = 'hs_' + site + '.tif'
+    hillRas = site + '_hs.tif'
     hillRasObject = arcpy.sa.Hillshade(elevDEM, az, alt, 'NO_SHADOWS', 1)
     hillRasObject.save(hillRas)
     del hillRasObject
@@ -193,7 +193,7 @@ if hillshade:
 if slope:
     printArc('...creating slope raster...')
     start = datetime.datetime.now()
-    slopeRas = 'slp_' + site + '.tif'
+    slopeRas = site + '_slp.tif'
     slopeRasObject = arcpy.sa.Slope(elevDEM, "DEGREE", 1)
     slopeRasObject.save(slopeRas)
     del slopeRasObject
@@ -211,9 +211,9 @@ if curv:
     curveDir = os.path.join(outDir, 'curvature')
     checkAddDir(curveDir)
     arcpy.env.workspace = curveDir
-    curveRas = 'cv_' + site
-    profCurveRas = 'pfcv_' + site
-    planCurveRas = 'pncv_' + site
+    curveRas = site + '_cv.tif'
+    profCurveRas = site + '_pfcv.tif'
+    planCurveRas = site + '_pncv.tif'
 
 
     curveRasObject = arcpy.sa.Curvature(elevDEM, 1, profCurveRas, planCurveRas)
